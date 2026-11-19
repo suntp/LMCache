@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PR #6610 Reviewer Guide — head ee40583d</title>
+<style>
+  :root { --ink:#1a1f28; --mut:#5b6472; --line:#d8dee8; --bg:#fbfcfe; --acc:#0b5fff; --ok:#0a7d3f; --warn:#9a6700; --box:#f2f5fa; }
+  * { box-sizing:border-box; }
+  body { font:15px/1.65 ui-sans-serif,-apple-system,"Segoe UI",Roboto,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif; color:var(--ink); background:var(--bg); margin:0; padding:0 0 80px; }
+  main { max-width:960px; margin:0 auto; padding:0 20px; }
+  header { border-bottom:3px solid var(--acc); background:var(--box); padding:26px 20px 18px; }
+  header .wrap { max-width:960px; margin:0 auto; padding:0 20px; }
+  h1 { font-size:22px; margin:0 0 6px; }
+  h2 { font-size:18px; border-left:4px solid var(--acc); padding-left:10px; margin:38px 0 10px; }
+  h3 { font-size:15.5px; margin:20px 0 6px; }
+  p,li { margin:6px 0; }
+  code { background:#eef2f8; border:1px solid var(--line); border-radius:4px; padding:0 5px; font:13px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; }
+  pre { background:#f4f6fa; border:1px solid var(--line); border-radius:8px; padding:12px 14px; overflow-x:auto; font:13px/1.55 ui-monospace,Menlo,Consolas,monospace; }
+  table { border-collapse:collapse; width:100%; margin:10px 0 16px; font-size:14px; }
+  th,td { border:1px solid var(--line); padding:6px 10px; text-align:left; vertical-align:top; }
+  th { background:var(--box); }
+  a { color:var(--acc); }
+  .meta { color:var(--mut); font-size:13.5px; }
+  .pill { display:inline-block; border-radius:20px; padding:1px 10px; font-size:12.5px; margin-right:6px; border:1px solid var(--line); background:#fff; }
+  .pill.ok { color:var(--ok); border-color:var(--ok); }
+  .pill.warn { color:var(--warn); border-color:var(--warn); }
+  .toggle { position:sticky; top:0; z-index:9; background:var(--bg); border-bottom:1px solid var(--line); padding:8px 0; text-align:right; }
+  .toggle label { cursor:pointer; user-select:none; background:#fff; border:1.5px solid var(--acc); color:var(--acc); border-radius:8px; padding:4px 14px; font-size:14px; font-weight:600; }
+  #lang { position:absolute; opacity:0; pointer-events:none; }
+  .zh { display:none; }
+  #lang:checked ~ main .zh { display:block; }
+  #lang:checked ~ main .en { display:none; }
+  #lang:checked ~ .toggle label.en-lbl { display:inline; }
+  #lang:checked ~ .toggle label.zh-lbl { display:none; }
+  .toggle .zh-lbl { display:inline; }
+  .toggle .en-lbl { display:none; }
+  figure { margin:14px 0 18px; background:#fff; border:1px solid var(--line); border-radius:10px; padding:14px; overflow-x:auto; }
+  figcaption { color:var(--mut); font-size:13px; margin-top:8px; }
+  .callout { border-left:4px solid var(--warn); background:#fff8e6; padding:8px 14px; border-radius:0 8px 8px 0; margin:10px 0; }
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  @media (max-width:760px){ .grid2 { grid-template-columns:1fr; } }
+  svg text { font:12px ui-sans-serif,sans-serif; fill:var(--ink); }
+  svg .dim { fill:var(--mut); }
+  svg .box { fill:#eef4ff; stroke:var(--acc); stroke-width:1.2; rx:6; }
+  svg .boxg { fill:#effaf2; stroke:var(--ok); stroke-width:1.2; }
+  svg .boxr { fill:#fdf0ef; stroke:#c0392b; stroke-width:1.2; }
+  svg .lbl { font-weight:700; }
+  svg .flow { stroke:#8a94a6; stroke-width:1.4; fill:none; marker-end:url(#arr); }
+  footer { color:var(--mut); font-size:12.5px; margin-top:44px; border-top:1px solid var(--line); padding-top:12px; }
+</style>
+</head>
+<body>
+<input type="checkbox" id="lang">
+<div class="toggle"><label for="lang" class="zh-lbl">Switch to English</label><label for="lang" class="en-lbl">切换到中文</label></div>
+
+<header><div class="wrap">
+  <h1>LMCache PR #6610 — Reviewer Guide <span class="meta">(bilingual / 双语)</span></h1>
+  <p class="meta">
+    <span class="pill">head <code>ee40583d</code></span>
+    <span class="pill">base <code>dev</code> @ merge-base <code>32fe4589</code></span>
+    <span class="pill">6 files · +766/−41 across 7 commits</span>
+    <span class="pill warn">AI-assisted (OpenAI Codex + ZCode); this guide matches this head exactly</span>
+  </p>
+  <p class="meta en">Topic: <strong>Revision addressing sammshen's review</strong> — CompositeCommand shape, error-detail surfacing, per-field columns. Original feature: <code>lmcache kvcache list</code> over <code>GET /cache/objects?tier=l2</code>.</p>
+  <p class="meta zh">主题：<strong>响应 sammshen 审查意见的修订版</strong>——CompositeCommand 结构、错误详情透出、按字段拆列。原始功能：基于 <code>GET /cache/objects?tier=l2</code> 的 <code>lmcache kvcache list</code>。</p>
+</div></header>
+
+<main>
+
+<h2 class="en">0. What changed since the first revision, in one table</h2>
+<h2 class="zh">0. 相对上一版改了什么（一表总览）</h2>
+
+<table>
+  <tr><th class="en">Review comment</th><th class="zh">审查意见</th><th class="en">Response in this head</th><th class="zh">本 head 的处理</th></tr>
+  <tr>
+    <td class="en"><a href="https://github.com/LMCache/LMCache/pull/6610#discussion_r_...">kvcache.py:126</a> — hand-rolled subparser forces output flags before the sub-command; move to the <code>quota</code> CompositeCommand shape.</td>
+    <td class="zh"><code>kvcache.py:126</code>——手写 subparser 导致输出参数必须放在子命令前；建议改成 <code>quota</code> 式 CompositeCommand。</td>
+    <td class="en">Done. <code>kvcache.py</code> → package <code>kvcache/</code> (<code>__init__.py</code> + <code>clear_command.py</code> + <code>list_command.py</code>), auto-discovered leaves, each leaf owns <code>--format/--output/-q</code> (added by <code>BaseCommand.register</code>). #6479's <code>delete</code> becomes one new leaf module.</td>
+    <td class="zh">已完成。<code>kvcache.py</code> → 包 <code>kvcache/</code>（<code>__init__.py</code> + <code>clear_command.py</code> + <code>list_command.py</code>），leaf 自动发现，各自持有 <code>--format/--output/-q</code>（由 <code>BaseCommand.register</code> 注入）。#6479 的 <code>delete</code> 之后只需新增一个 leaf 模块。</td>
+  </tr>
+  <tr>
+    <td class="en"><code>kvcache.py:192</code> — <code>fetch_json</code> drops error bodies except 503 (and only reads <code>error</code>); surface <code>detail</code>.</td>
+    <td class="zh"><code>kvcache.py:192</code>——<code>fetch_json</code> 除 503 外丢弃错误体（且只读 <code>error</code> 键）；希望透出 <code>detail</code>。</td>
+    <td class="en">Done. One shared path reads a <strong>4 KiB-bounded</strong> body (explicit <code>close()</code>), extracts <code>detail/error/message</code>, and reports <code>HTTP {code} from {url}: {reason}</code> for non-503; the legacy <code>Server unhealthy: ...</code> wording and read-failure diagnostics for 503 are preserved for <code>describe</code>. <code>clear</code> now reuses <code>fetch_json</code> (GET/POST via new <code>method</code>/<code>data</code> kwargs), deleting the duplicated hand-rolled helper.</td>
+    <td class="zh">已完成。统一路径读取<strong>上限 4 KiB</strong> 的错误体（显式 <code>close()</code>），提取 <code>detail/error/message</code>；非 503 报 <code>HTTP {code} from {url}: {reason}</code>；503 保留 <code>describe</code> 依赖的 <code>Server unhealthy: ...</code> 文案与读取失败诊断。<code>clear</code> 改用 <code>fetch_json</code>（新增 <code>method</code>/<code>data</code> 参数），删除了重复的手写 helper。</td>
+  </tr>
+  <tr>
+    <td class="en"><code>kvcache.py:205</code> — terminal Key cell is <code>str()</code> of the whole key dict; split columns (hash/model/rank); paste a real page.</td>
+    <td class="zh"><code>kvcache.py:205</code>——终端 Key 列是整个 key dict 的 <code>str()</code>；建议拆列（hash/model/rank）；贴一页真实输出。</td>
+    <td class="en">Done. Six key columns (<em>Chunk hash / Model / Rank / Group / Salt / Tags</em>) + <em>Bytes</em>. JSON rows are flattened to the same fields (plan A), optional fields get protocol defaults. A real terminal page is pasted in the PR reply and §3.</td>
+    <td class="zh">已完成。六个键列（<em>Chunk hash / Model / Rank / Group / Salt / Tags</em>）加 <em>Bytes</em>。JSON 行拍平为同名字段（方案 A），可选字段按协议默认值补齐。真实终端输出见 PR 回复与 §3。</td>
+  </tr>
+</table>
+
+<h2 class="en">1. Before / after: command shape and flag placement</h2>
+<h2 class="zh">1. 前后对比：命令结构与参数位置</h2>
+
+<p class="en">Previously <code>KVCacheCommand</code> was a single <code>BaseCommand</code> whose parser registered output flags at the <em>parent</em> level, so users had to write <code>lmcache kvcache --format json list …</code> and the docs had to explain the ordering. Now the command mirrors <code>lmcache quota</code>: an almost-empty <code>CompositeCommand</code> whose leaf modules are auto-discovered; <code>BaseCommand.register</code> appends the shared output arguments to <em>every leaf</em>, so <code>lmcache kvcache list --format json</code> works naturally.</p>
+<p class="zh">此前 <code>KVCacheCommand</code> 是单个 <code>BaseCommand</code>，输出参数注册在<strong>父级</strong> parser 上，用户必须写 <code>lmcache kvcache --format json list …</code>，文档还得专门解释顺序。现在与 <code>lmcache quota</code> 同构：近乎空的 <code>CompositeCommand</code> 自动发现 leaf 模块；<code>BaseCommand.register</code> 给<strong>每个 leaf</strong> 追加共享输出参数，于是 <code>lmcache kvcache list --format json</code> 自然可用。</p>
+
+<figure>
+<svg viewBox="0 0 880 300" width="100%" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Before and after command structure">
+  <defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8a94a6"/></marker></defs>
+  <text x="10" y="20" class="lbl">BEFORE — single module, parent-level flags / 旧：单模块，参数在父级</text>
+  <rect x="30" y="40" width="180" height="46" class="box" rx="6"/><text x="120" y="60" text-anchor="middle" class="lbl">kvcache.py</text><text x="120" y="76" text-anchor="middle" class="dim">KVCacheCommand(BaseCommand)</text>
+  <rect x="260" y="30" width="120" height="26" class="box" rx="6"/><text x="320" y="47" text-anchor="middle">--format/--output/-q</text>
+  <rect x="260" y="66" width="90" height="26" class="box" rx="6"/><text x="305" y="83" text-anchor="middle">clear</text>
+  <rect x="370" y="66" width="90" height="26" class="box" rx="6"/><text x="415" y="83" text-anchor="middle">list</text>
+  <path class="flow" d="M210,63 L255,45"/><path class="flow" d="M210,70 L255,79"/>
+  <text x="260" y="120" class="dim">lmcache kvcache --format json list …  ← flags must precede the leaf</text>
+  <text x="10" y="170" class="lbl">AFTER — package, leaf-level flags / 新：包结构，参数在 leaf</text>
+  <rect x="30" y="190" width="180" height="46" class="boxg" rx="6"/><text x="120" y="210" text-anchor="middle" class="lbl">kvcache/__init__.py</text><text x="120" y="226" text-anchor="middle" class="dim">KVCacheCommand(CompositeCommand)</text>
+  <rect x="280" y="182" width="150" height="40" class="boxg" rx="6"/><text x="355" y="199" text-anchor="middle" class="lbl">clear_command.py</text><text x="355" y="214" text-anchor="middle" class="dim">--url + output flags</text>
+  <rect x="470" y="182" width="150" height="40" class="boxg" rx="6"/><text x="625" y="0" text-anchor="middle"></text><text x="545" y="199" text-anchor="middle" class="lbl">list_command.py</text><text x="545" y="214" text-anchor="middle" class="dim">--url/--adapter/… + output flags</text>
+  <rect x="670" y="182" width="180" height="40" class="boxr" rx="6"/><text x="760" y="199" text-anchor="middle" class="lbl">delete_command.py</text><text x="760" y="214" text-anchor="middle" class="dim">#6479 drops in as one leaf</text>
+  <path class="flow" d="M210,213 L275,202"/><path class="flow" d="M210,220 L465,202"/><path class="flow" d="M210,227 L665,202" stroke-dasharray="4 3"/>
+  <text x="280" y="262" class="dim">lmcache kvcache list --format json …  ← leaf owns its flags (quota parity)</text>
+</svg>
+<figcaption class="en">Fig.1 — Structural change. Auto-discovery (<code>discover_subclasses</code>) finds leaf <code>BaseCommand</code>s inside the package; <code>CompositeCommand.execute</code> dispatches via <code>kvcache_target</code>; the hand-rolled <code>dispatch</code> dict is gone.</figcaption>
+<figcaption class="zh">图 1 —— 结构变化。自动发现（<code>discover_subclasses</code>）扫描包内 leaf <code>BaseCommand</code>；<code>CompositeCommand.execute</code> 经 <code>kvcache_target</code> 分发；手写 <code>dispatch</code> 字典删除。</figcaption>
+</figure>
+
+<div class="callout en"><strong>Breaking change (intended, per review):</strong> the parent level no longer accepts <code>--format/--output/-q</code>. <code>lmcache kvcache --format json clear</code> (old) now exits 2; use <code>lmcache kvcache clear --format json</code>. Locked by <code>test_output_flags_belong_to_subcommands</code>.</div>
+<div class="callout zh"><strong>破坏性变更（审查意见所要求）：</strong>父级不再接受 <code>--format/--output/-q</code>。旧的 <code>lmcache kvcache --format json clear</code> 现在退出码 2；请用 <code>lmcache kvcache clear --format json</code>。由 <code>test_output_flags_belong_to_subcommands</code> 锁定。</div>
+
+<h2 class="en">2. <code>fetch_json</code>: one error path, every code, bounded reads</h2>
+<h2 class="zh">2. <code>fetch_json</code>：统一错误路径、全状态码、有界读取</h2>
+
+<p class="en">Files: <a href="https://github.com/suntp/LMCache/blob/ee40583d/lmcache/cli/http.py"><code>lmcache/cli/http.py</code></a>. The helper gained keyword-only <code>method</code>/<code>data</code> (so <code>clear</code> could reuse it instead of a near-duplicate), and its <code>HTTPError</code> branch was rebuilt around one <code>_error_body()</code> read with the following guarantees:</p>
+<p class="zh">文件：<a href="https://github.com/suntp/LMCache/blob/ee40583d/lmcache/cli/http.py"><code>lmcache/cli/http.py</code></a>。helper 新增仅关键字参数 <code>method</code>/<code>data</code>（让 <code>clear</code> 复用它而非近似重复的私有实现），<code>HTTPError</code> 分支围绕单一的 <code>_error_body()</code> 读取重建，保证如下：</p>
+<ul>
+  <li class="en"><strong>Bounded:</strong> at most 4096 bytes are read for diagnostics (<code>read(cap+1)</code>, then sliced); the response is <em>always closed</em> (<code>finally: exc.close()</code>).</li>
+  <li class="zh"><strong>有界：</strong>诊断最多读 4096 字节（<code>read(cap+1)</code> 后切片）；响应<strong>总是被关闭</strong>（<code>finally: exc.close()</code>）。</li>
+  <li class="en"><strong>Short bodies detected:</strong> a bounded read silently returns fewer bytes when a declared <code>Content-Length</code> ends early; the declared length is checked and an <code>IncompleteRead(raw, expected-len(raw))</code> is chained, reproducing the legacy <code>"…94 more expected"</code> diagnostics. <code>HEAD</code> requests and <code>204/304</code> statuses legitimately carry no body (RFC 9110 §8.6) and are exempt.</li>
+  <li class="zh"><strong>短读检测：</strong>声明 <code>Content-Length</code> 提前截断时，有界 read 会静默返回短字节；代码核对声明长度并链式抛出 <code>IncompleteRead(raw, expected-len(raw))</code>，复现旧版 <code>"…94 more expected"</code> 诊断。<code>HEAD</code> 请求与 <code>204/304</code> 状态合理无正文（RFC 9110 §8.6），予以豁免。</li>
+  <li class="en"><strong>Strict incremental UTF-8:</strong> the prefix is decoded with <code>codecs</code>' incremental decoder, <code>final=not truncated</code> — a multi-byte character split by the bound is tolerated, invalid bytes <em>anywhere</em> still raise and map to <code>Cannot read HTTP {code} response</code>.</li>
+  <li class="zh"><strong>增量严格 UTF-8：</strong>前缀用 <code>codecs</code> 增量解码器、<code>final=not truncated</code>——被上限切开的尾字符被容忍，但<strong>任何位置</strong>的非法字节仍会抛出并映射为 <code>Cannot read HTTP {code} response</code>。</li>
+  <li class="en"><strong>Detail extraction is truncation-safe:</strong> <code>_error_body</code> returns <code>(text, truncated)</code>; the JSON <code>detail/error/message</code> extraction runs on the <em>unmarked</em> text, and <code>[truncated]</code> is appended only when a 503 falls back to showing the raw body.</li>
+  <li class="zh"><strong>截断不影响提取：</strong><code>_error_body</code> 返回 <code>(text, truncated)</code>；JSON 的 <code>detail/error/message</code> 提取作用于<strong>未加标记</strong>的文本，<code>[truncated]</code> 仅在 503 回退展示原始 body 且确实截断时追加。</li>
+  <li class="en"><strong>503 contract preserved:</strong> <code>Server unhealthy: {detail|raw body}</code> (design doc &amp; <code>test_describe.py</code> expectations, incl. plain-text bodies and the <code>__cause__.__cause__ is IncompleteRead</code> chain) — while <code>detail</code> bodies now render properly instead of raw JSON.</li>
+  <li class="zh"><strong>503 契约保留：</strong><code>Server unhealthy: {detail|raw body}</code>（设计文档与 <code>test_describe.py</code> 的既有期望，含纯文本正文和 <code>__cause__.__cause__ is IncompleteRead</code> 异常链）——同时 <code>detail</code> 正文不再以原始 JSON 串形式展示。</li>
+</ul>
+
+<figure>
+<svg viewBox="0 0 880 240" width="100%" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Error handling flow">
+  <defs><marker id="arr2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8a94a6"/></marker></defs>
+  <rect x="20" y="30" width="130" height="40" class="box" rx="6"/><text x="85" y="48" text-anchor="middle" class="lbl">leaf command</text><text x="85" y="63" text-anchor="middle" class="dim">list / clear</text>
+  <rect x="190" y="30" width="150" height="40" class="box" rx="6"/><text x="265" y="48" text-anchor="middle" class="lbl">fetch_json(url,</text><text x="265" y="63" text-anchor="middle" class="dim">method, data)</text>
+  <path class="flow" d="M150,50 L185,50"/>
+  <rect x="380" y="20" width="170" height="30" class="boxg" rx="6"/><text x="465" y="39" text-anchor="middle">200 → json.loads → page</text>
+  <rect x="380" y="70" width="170" height="86" class="boxr" rx="6"/><text x="465" y="88" text-anchor="middle" class="lbl">HTTPError</text>
+  <text x="465" y="104" text-anchor="middle" class="dim">_error_body(url, exc, method)</text>
+  <text x="465" y="118" text-anchor="middle" class="dim">bounded read · close() ·</text>
+  <text x="465" y="132" text-anchor="middle" class="dim">short-body check (no HEAD/204/304)</text>
+  <text x="465" y="146" text-anchor="middle" class="dim">incremental strict UTF-8</text>
+  <path class="flow" d="M340,50 L375,35"/><path class="flow" d="M340,58 L375,100"/>
+  <rect x="610" y="18" width="240" height="30" class="boxg" rx="6"/><text x="730" y="37" text-anchor="middle">non-503: HTTP {code}: detail|error|message|reason</text>
+  <rect x="610" y="60" width="240" height="30" class="boxg" rx="6"/><text x="730" y="79" text-anchor="middle">503: Server unhealthy: detail | raw body [+ truncated]</text>
+  <rect x="610" y="102" width="240" height="30" class="boxr" rx="6"/><text x="730" y="121" text-anchor="middle">read/decode failure → legacy wording + cause chain</text>
+  <path class="flow" d="M550,90 L605,33"/><path class="flow" d="M550,105 L605,75"/><path class="flow" d="M550,125 L605,117"/>
+  <rect x="380" y="185" width="470" height="30" class="box" rx="6"/><text x="615" y="204" text-anchor="middle" class="dim">leaf: except CLIHTTPError → stderr, exit 1, no report file written</text>
+  <path class="flow" d="M550,156 L540,183"/>
+</svg>
+<figcaption class="en">Fig.2 — Error-path flow. Every failure surfaces the server's reason; every success path is unchanged for existing callers (<code>describe</code>).</figcaption>
+<figcaption class="zh">图 2 —— 错误路径流。所有失败都透出服务端原因；对既有调用方（<code>describe</code>）成功路径行为不变。</figcaption>
+</figure>
+
+<h2 class="en">3. <code>list</code>: page validation, typed flattening, real output</h2>
+<h2 class="zh">3. <code>list</code>：分页校验、类型化拍平、真实输出</h2>
+
+<p class="en">File: <a href="https://github.com/suntp/LMCache/blob/ee40583d/lmcache/cli/commands/kvcache/list_command.py"><code>list_command.py</code></a>. Before any report is created, <code>_validated_page()</code> checks the documented page shape (<code>adapter</code> str, <code>shared</code> bool, <code>entries</code> list, <code>next_page_token</code> present as str-or-null). Each entry then goes through <code>_flatten_entry()</code>:</p>
+<p class="zh">文件：<a href="https://github.com/suntp/LMCache/blob/ee40583d/lmcache/cli/commands/kvcache/list_command.py"><code>list_command.py</code></a>。创建任何报告之前，<code>_validated_page()</code> 先校验分页文档形状（<code>adapter</code> 为 str、<code>shared</code> 为 bool、<code>entries</code> 为 list、<code>next_page_token</code> 显式存在且为 str 或 null）。随后每个条目经过 <code>_flatten_entry()</code>：</p>
+
+<table>
+  <tr><th class="en">Field</th><th class="zh">字段</th><th class="en">Required / optional</th><th class="zh">必填/可选</th><th class="en">Rule</th><th class="zh">规则</th></tr>
+  <tr><td><code>chunk_hash_hex</code>, <code>model_name</code></td><td></td><td class="en">required</td><td class="zh">必填</td><td class="en"><code>str</code>, else <code>Invalid cache object at index N</code></td><td class="zh">必须 <code>str</code>，否则报 <code>Invalid cache object at index N</code></td></tr>
+  <tr><td><code>kv_rank</code>, <code>size_bytes</code></td><td></td><td class="en">required</td><td class="zh">必填</td><td class="en"><code>int</code> and <em>not</em> <code>bool</code> (<code>_is_int</code>)</td><td class="zh">必须 <code>int</code> 且<strong>非</strong> <code>bool</code>（<code>_is_int</code>）</td></tr>
+  <tr><td><code>object_group_id</code></td><td></td><td class="en">optional → default <code>0</code></td><td class="zh">可选 → 默认 <code>0</code></td><td class="en">int-not-bool when present; <code>null</code> = default</td><td class="zh">出现时须为非 bool int；<code>null</code> 视为缺省</td></tr>
+  <tr><td><code>cache_salt</code></td><td></td><td class="en">optional → default <code>""</code></td><td class="zh">可选 → 默认 <code>""</code></td><td class="en">str when present</td><td class="zh">出现时须为 str</td></tr>
+  <tr><td><code>tags</code></td><td></td><td class="en">optional → default <code>{}</code></td><td class="zh">可选 → 默认 <code>{}</code></td><td class="en">object; names non-empty str, values str (identity-tag contract), fresh dict per row</td><td class="zh">必须对象；键名非空 str、值为 str（身份标签契约），每行独立新 dict</td></tr>
+</table>
+
+<p class="en">Terminal output (real page from the loopback fixture in this head's tests):</p>
+<p class="zh">终端输出（本 head 测试中回环 fixture 的真实页面）：</p>
+<pre>================== L2 Cache Objects ===================
+Adapter:          s3
+Shared:           True
+Next page token:  opaque+/=?&amp; %游标
+
+Chunk hash  Model      Rank  Group  Salt      Tags                    Bytes
+------------------------------------------------------------------------------
+deadbeef    org/model  2     3      tenant-a  {'version': 'v2'}       4096</pre>
+
+<p class="en">JSON rows are the same fields flattened (<code>{"chunk_hash_hex": …, "size_bytes": …}</code>), so every wire-key field is a JSON field — no nested <code>key</code> object (unreleased surface, changed now per plan A).</p>
+<p class="zh">JSON 行即同名字段拍平（<code>{"chunk_hash_hex": …, "size_bytes": …}</code>），每个 wire-key 字段都是 JSON 字段——不再有嵌套 <code>key</code> 对象（未发布的接口面，按方案 A 现在改）。</p>
+
+<h2 class="en">4. Test rationale &amp; coverage map</h2>
+<h2 class="zh">4. 测试理由与覆盖图</h2>
+
+<p class="en">All 40 cases in <a href="https://github.com/suntp/LMCache/blob/ee40583d/tests/cli/commands/test_kvcache.py"><code>tests/cli/commands/test_kvcache.py</code></a> drive the public <code>main()</code> against a real loopback <code>ThreadingHTTPServer</code> (no mocks of our own code), with a fixture that can script status codes, raw bodies, and a lying <code>Content-Length</code> to force short reads. Together with the 10 pre-existing <code>describe</code> cases they lock every contract above. Not covered: a real S3-backed server round-trip (needs credentials; left to CPU Device Tests / Buildkite).</p>
+<p class="zh"><a href="https://github.com/suntp/LMCache/blob/ee40583d/tests/cli/commands/test_kvcache.py"><code>tests/cli/commands/test_kvcache.py</code></a> 的全部 40 个用例都通过公共 <code>main()</code> 驱动真实回环 <code>ThreadingHTTPServer</code>（不 mock 自家代码），fixture 可脚本化状态码、原始字节体、以及谎报的 <code>Content-Length</code> 以强制短读。与 10 个既有 <code>describe</code> 用例一起锁定上述全部契约。未覆盖：真实 S3 后端的服务器往返（需要凭据，留给 CPU Device Tests / Buildkite）。</p>
+
+<figure>
+<svg viewBox="0 0 880 210" width="100%" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Coverage map">
+  <rect x="15" y="15" width="270" height="180" class="boxg" rx="6"/><text x="150" y="35" text-anchor="middle" class="lbl">Command shape / 命令结构</text>
+  <text x="28" y="58" class="dim">• one page + resume, no auto-follow</text>
+  <text x="28" y="76" class="dim">• filters survive URL encoding (中文/&amp;/?/#)</text>
+  <text x="28" y="94" class="dim">• parent-level flags rejected (exit 2)</text>
+  <text x="28" y="112" class="dim">• clear: POST /cache/clear + Content-Type</text>
+  <text x="28" y="130" class="dim">• quiet still writes --output</text>
+  <text x="28" y="148" class="dim">• terminal: column headers, (none)</text>
+  <text x="28" y="166" class="dim">• page-size bounds 1/5000, 0/-1/5001/abc</text>
+  <rect x="305" y="15" width="270" height="180" class="box" rx="6"/><text x="440" y="35" text-anchor="middle" class="lbl">Error paths / 错误路径</text>
+  <text x="318" y="58" class="dim">• 400/404/503 + detail/error/message</text>
+  <text x="318" y="76" class="dim">• 503 legacy wording, raw-text body</text>
+  <text x="318" y="94" class="dim">• short body → "94 more expected"</text>
+  <text x="318" y="112" class="dim">• 304 empty body not "Incomplete"</text>
+  <text x="318" y="130" class="dim">• invalid UTF-8 inside oversized body</text>
+  <text x="318" y="148" class="dim">• multi-byte char across the 4 KiB cut</text>
+  <text x="318" y="166" class="dim">• JSON detail + padding past the cut</text>
+  <rect x="595" y="15" width="270" height="180" class="boxr" rx="6"/><text x="730" y="35" text-anchor="middle" class="lbl">Page/entry validation / 分页校验</text>
+  <text x="608" y="58" class="dim">• 5 malformed page shapes</text>
+  <text x="608" y="76" class="dim">• legacy keys → typed defaults</text>
+  <text x="608" y="94" class="dim">• missing/null/bool rank &amp; size</text>
+  <text x="608" y="112" class="dim">• null key / non-object entry</text>
+  <text x="608" y="130" class="dim">• tag value type / empty tag name</text>
+  <text x="608" y="148" class="dim">• entries not a list</text>
+  <text x="608" y="166" class="dim">• failures: exit 1, stderr, no file</text>
+</svg>
+<figcaption class="en">Fig.3 — Coverage map. Every box above names assertions present at this head; each of the seven reviewer-driven behaviors has at least one test that fails if it regresses (mutation-verified, see §5).</figcaption>
+<figcaption class="zh">图 3 —— 覆盖图。以上每格都是本 head 实际存在的断言；七项审查驱动行为各自至少有一个回归即失败的测试（经变异验证，见 §5）。</figcaption>
+</figure>
+
+<h2 class="en">5. Validation evidence (head <code>ee40583d</code>)</h2>
+<h2 class="zh">5. 验证证据（head <code>ee40583d</code>）</h2>
+<table>
+  <tr><th class="en">Check</th><th class="zh">检查</th><th class="en">Result</th><th class="zh">结果</th></tr>
+  <tr><td class="en">Targeted suites (kvcache + describe + directed registration)</td><td class="zh">定向三套测试</td><td class="en" colspan="1">95 passed (40 kvcache incl. 22 new this revision)</td><td class="zh">95 通过（kvcache 40 个，其中本次修订新增 22 个）</td></tr>
+  <tr><td class="en">Independent review loop (Codex, same diff)</td><td class="zh">独立审核循环（Codex，同一 diff）</td><td class="en">7 rounds → pass; reviewer ran 136 related tests, loopback probes, and its own mutations each round</td><td class="zh">7 轮后通过；审核方每轮实跑 136 个相关测试、回环探测与自发变异</td></tr>
+  <tr><td class="en">pre-commit (repo pinned)</td><td class="zh">pre-commit（仓库锁定版本）</td><td class="en">SPDX / isort / ruff / ruff-format / codespell / clang-format / mypy 1.17.1 all Passed (rust skipped, non-Rust change)</td><td class="zh">SPDX / isort / ruff / ruff-format / codespell / clang-format / mypy 1.17.1 全部 Passed（rust 跳过，非 Rust 改动）</td></tr>
+  <tr><td class="en">Mutation check (author-run)</td><td class="zh">变异检查（作者执行）</td><td class="en">3/3 detected &amp; reverted (remove 304 exemption → 1 fail; allow bool as int → 3 fail; bypass page validation → 6 fail); restored head passes</td><td class="zh">3/3 检出并还原（移除 304 豁免→挂 1；bool 冒充 int→挂 3；绕过分页校验→挂 6）；还原后全过</td></tr>
+  <tr><td class="en">Strict Sphinx build</td><td class="zh">严格 Sphinx 构建</td><td class="en">Same 15 pre-existing duplicate-label warnings as clean dev; 0 new</td><td class="zh">与干净 dev 相同的 15 条既有重复标签警告；0 新增</td></tr>
+</table>
+
+<h2 class="en">6. Compatibility notes &amp; residual risks</h2>
+<h2 class="zh">6. 兼容性说明与残余风险</h2>
+<ul>
+  <li class="en"><strong>Flag placement break</strong> (see §1) — the only intentional behavior break; CLI-only, young surface.</li>
+  <li class="zh"><strong>参数位置变更</strong>（见 §1）——唯一有意的破坏性变更；仅 CLI、尚年轻。</li>
+  <li class="en"><code>clear</code>: now normalizes the URL (bare host:port works) and writes <code>--output</code> even under <code>--quiet</code> (previously quiet suppressed the file); errors change from <code>logger.error</code>+exit to stderr+exit 1 with the server's reason.</li>
+  <li class="zh"><code>clear</code>：URL 归一化（裸 host:port 可用）；<code>--quiet</code> 下仍写 <code>--output</code>（此前 quiet 会跳过文件）；错误从 <code>logger.error</code>+exit 改为 stderr+exit 1 并带服务端原因。</li>
+  <li class="en"><code>fetch_json</code> signature extended with keyword-only args — all existing callers (<code>describe</code>) unchanged; non-503 error <em>messages</em> now carry the server reason (improvement, not a contract).</li>
+  <li class="zh"><code>fetch_json</code> 以仅关键字参数扩展——既有调用方（<code>describe</code>）不受影响；非 503 的错误<strong>消息</strong>现在携带服务端原因（改进，非契约变更）。</li>
+  <li class="en">JSON rows flattened (plan A) and doc examples switched to <code>--adapter s3</code> — the only adapter whose <code>list_l2_keys</code> is implemented (HTTP API doc).</li>
+  <li class="zh">JSON 行已拍平（方案 A）；文档示例改用 <code>--adapter s3</code>——唯一实现了 <code>list_l2_keys</code> 的 adapter（见 HTTP API 文档）。</li>
+  <li class="en">Overlap with #6479 remains: both register leaves under <code>kvcache/</code>; whichever lands first, the other is a one-file rebase.</li>
+  <li class="zh">与 #6479 的重叠仍在：两者都在 <code>kvcache/</code> 下注册 leaf；无论谁先合并，另一方都是单文件级别的 rebase。</li>
+</ul>
+
+<h2 class="en">7. Suggested review order</h2>
+<h2 class="zh">7. 建议的审查顺序</h2>
+<ol>
+  <li class="en"><a href="https://github.com/LMCache/LMCache/pull/6610/files">Diff overview</a> — 6 files; two thirds are tests and docs.</li>
+  <li class="zh"><a href="https://github.com/LMCache/LMCache/pull/6610/files">Diff 总览</a>——6 个文件；约三分之二是测试与文档。</li>
+  <li class="en"><code>kvcache/__init__.py</code> (17 lines) → <code>clear_command.py</code> (43) → <code>list_command.py</code> — the CompositeCommand migration and the validation/flatten logic.</li>
+  <li class="zh"><code>kvcache/__init__.py</code>（17 行）→ <code>clear_command.py</code>（43 行）→ <code>list_command.py</code>——CompositeCommand 迁移与校验/拍平逻辑。</li>
+  <li class="en"><code>cli/http.py</code> — the only shared-helper change; check §2's guarantees against <code>_error_body</code>/<code>_detail_from_body</code>.</li>
+  <li class="zh"><code>cli/http.py</code>——唯一的共享 helper 改动；对照 §2 的保证审查 <code>_error_body</code>/<code>_detail_from_body</code>。</li>
+  <li class="en">Tests — the fixture (queue + lying Content-Length support) then the three groups of Fig.3.</li>
+  <li class="zh">测试——先看 fixture（队列 + 谎报 Content-Length 支持），再看图 3 的三组。</li>
+  <li class="en">Docs — <code>kvcache.rst</code> (user-facing; flag order, flat JSON, s3) and the two design docs.</li>
+  <li class="zh">文档——<code>kvcache.rst</code>（面向用户；参数顺序、拍平 JSON、s3）与两个设计文档。</li>
+</ol>
+
+<footer>
+  <p class="en">Offline bilingual reviewer guide for LMCache PR #6610, tied to head <code>ee40583d</code> (earlier artifacts cover earlier heads only). Generated with AI assistance (OpenAI Codex + ZCode); reviewed by the submitting human. No external assets, fonts, or scripts; language switching is pure CSS.</p>
+  <p class="zh">LMCache PR #6610 的离线双语审查指南，锚定 head <code>ee40583d</code>（更早的产物只覆盖更早的 head）。AI 辅助生成（OpenAI Codex + ZCode），已由提交者本人复核。无外部资源、字体或脚本；语言切换为纯 CSS 实现。</p>
+</footer>
+</main>
+</body>
+</html>
